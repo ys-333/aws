@@ -1,26 +1,40 @@
 'use strict'
 import express, { Application, Request, Response } from 'express'
-
+import http from 'http'
+import cors from 'cors'
+import { Server, Socket } from 'socket.io'
 const app: Application = express()
+const server: http.Server = http.createServer(app)
+const io: Server = new Server(server)
 
 app.use(express.json())
+app.use(cors())
 
-let name: string = 'yashwant'
+interface dataType {
+  user: string
+  message: string
+}
+
+io.on('connection', (socket: Socket) => {
+  console.log('user connected')
+
+  socket.on('message', (data: dataType) => {
+    console.log(data)
+
+    io.emit('message', data)
+  })
+  socket.on('disconnect', () => {
+    console.log('user disconnected')
+  })
+})
 
 app.get(
   '/home',
   async (req: Request, res: Response): Promise<Response> => {
-    return res.status(200).json()
+    return res.status(200).json({ message: 'we are hitting' })
   },
 )
 
-app.listen(5000, (): void => {
-  console.log('server started at port 3000')
+server.listen(5000, () => {
+  console.log('Serve is running on port 5000')
 })
-
-/*
-   "start": "npm run build && node build/index.js",
-    "start:dev": "npx nodemon",
-    "build": "rimraf ./build && tsc",
-    "test": "echo \"Error: no test specified\" && exit 1"
-*/
